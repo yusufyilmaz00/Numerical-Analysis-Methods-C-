@@ -2,10 +2,12 @@
 #include <math.h>
 
 #define MAX 20
+
 typedef struct term{
 	double coef;
 	int exponent;
 }TERM;
+
 typedef struct poly{
 	TERM t[MAX];
 	int n;
@@ -13,15 +15,19 @@ typedef struct poly{
 
 void getFunction(POLY* p);
 double calculateFunction(POLY p,double x,int N);
+double calculateDerivative(POLY p,double x,int N);
+
 void bisection(POLY p,int N);
 void regulaFalsi(POLY p, int N);
+void newtonRaphson(POLY p,int N);
+
 
 int main(){
 	POLY p;
 	int i,N,flag,choice;
 	flag =1;
 	while(flag==1){
-		printf("\n0)QUIT\n1)Bisection Yontemi\n2)Regula Falsi Yontemi\n3)\n4)\n5)\n");
+		printf("\n0)QUIT\n1)Bisection Method\n2)Regula Falsi Method\n3)Newton Rapshon Method\n4)\n5)\n");
 		printf("6)\n7)\n8)\n9)\n10)\n");
 		printf("Seciminizi giriniz: ");
 		scanf("%d",&choice);
@@ -29,7 +35,7 @@ int main(){
 		switch(choice){
 			
 			case 1:
-				printf("\n|~~ Bisection Yontemi ~~|\n");
+				printf("\n|~~ Bisection Method ~~|\n");
 				getFunction(&p);
 				N= p.n;
 				bisection(p,N);
@@ -38,7 +44,7 @@ int main(){
 				break;
 			
 			case 2:
-				printf("\n|~~ Regula Falsi Yontemi ~~|\n");
+				printf("\n|~~ Regula Falsi Method ~~|\n");
 				getFunction(&p);
 				N= p.n;
 				regulaFalsi(p,N);
@@ -47,11 +53,23 @@ int main(){
 				break;
 			
 			case 3:
+				printf("\n|~~ Newton Rapshon Method ~~|\n");
+				getFunction(&p);
+				N= p.n;
+				newtonRaphson(p,N);
+				
+				printf("Ana Menu (1)\nProgrami Kapat (0)\nSecim: ");
+				scanf("%d",flag);
 				
 				break;
 			
 			case 4:
-				
+				printf("\n|~~ Turev Method ~~|\n");
+				getFunction(&p);
+				N= p.n;
+				double cevap;
+				cevap= calculateDerivative(p,2,N);
+				printf("cevap: %lf\n\n",cevap);
 				break;
 			
 			case 5:
@@ -118,6 +136,25 @@ double calculateFunction(POLY p,double x,int N){
 	return result; 
 }
 
+double calculateDerivative(POLY p,double x,int N){
+	int i,j;
+	double result,number,powResult;
+	result = 0.0;
+
+	for(i=0;i<N;i++){
+		number = p.t[i].coef * p.t[i].exponent ;
+		powResult = 1.0;
+		if(p.t[i].exponent !=0){
+			for(j=0;j < p.t[i].exponent-1 ;j++){
+				powResult *= x;
+			}	
+		}
+	result += number * powResult;  		
+	}
+	return result; 
+}
+
+//Numeric Analysis Methods 
 void bisection(POLY p,int N){
 	double  l,r,m,f_l,f_r,f_m,tolerance;
 	int i,iterMax;
@@ -144,10 +181,10 @@ void bisection(POLY p,int N){
 		m = (l+r)/2 ; 
 		f_m =calculateFunction(p,m,N); 
 		
-		printf("Iteration #%d\n",i,m,f_m);
-		printf("L-> F(%lf): %lf\n",l,f_l);
-		printf("M-> F(%lf): %lf\n",m,f_m);
-		printf("R-> F(%lf): %lf\n\n",r,f_r);
+		printf("Iteration #%d\n",i);
+		printf("left  -> F(%lf): %lf\n",l,f_l);
+		printf("mid   -> F(%lf): %lf\n",m,f_m);
+		printf("right -> F(%lf): %lf\n\n",r,f_r);
 		
 		if(f_l * f_m  < 0)
 			r = m;
@@ -190,9 +227,9 @@ void regulaFalsi(POLY p, int N){
 		f_c = calculateFunction(p, c, N);
 		
 		printf("Iteration #%d\n",i);
-		printf("A-> F(%lf): %lf\n",a,f_a);
-		printf("C-> F(%lf): %lf\n",c,f_c);
-		printf("B-> F(%lf): %lf\n\n",b,f_b);
+		printf("start -> F(%lf): %lf\n",a,f_a);
+		printf("point -> F(%lf): %lf\n",c,f_c);
+		printf("end   -> F(%lf): %lf\n\n",b,f_b);
 		
 		if(f_b * f_c  < 0)
 			a = c;
@@ -205,7 +242,36 @@ void regulaFalsi(POLY p, int N){
 		f_c = calculateFunction(p, c, N); 
 		i +=1;
 	}
-	printf("Denklem koku: %lf\n\n",c);
+	printf("Result: %lf\n\n",c);
 }
 
+void newtonRaphson(POLY p,int N){
+	double  tolerance,x,xnew,f_x,f_dx;
+	int i,is_value,iterMax;
 	
+	printf("\nEnter an x0 starting value: ");
+	scanf("%lf",&xnew);
+	printf("Enter a tolerance value: ");
+    scanf("%lf",&tolerance);
+    printf("Enter a max iteration value: ");
+    scanf("%d",&iterMax);
+    x = xnew + 2 * tolerance; // temporary value to satisfy the loop condition
+	printf("\n");
+	i=1;
+	while( fabs(xnew - x) > tolerance && i <= iterMax){
+		x = xnew;
+		f_x = calculateFunction(p,x,N);
+		f_dx = calculateDerivative(p,x,N);
+		xnew  = x - (f_x / f_dx);
+		printf("Iteration #%d\n",i);
+		printf("x(n)   : %lf\n",x);
+		printf("x(n+1) : %lf\n",xnew);
+		printf("f(xn)  : %lf\n",f_x);
+		printf("f'(xn) : %lf\n\n",f_dx);
+		
+		i +=1;
+	}
+	printf("Result: %lf\n\n",xnew);
+}
+
+
