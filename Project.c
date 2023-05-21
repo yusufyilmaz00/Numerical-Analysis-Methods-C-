@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <math.h>
 
-#define MAX 20
+#define MAX 25
+#define M 25
 
 typedef struct term{
 	double coef;
@@ -16,6 +17,10 @@ typedef struct poly{
 void getFunction(POLY* p);
 double calculateFunction(POLY p,double x,int N);
 double calculateDerivative(POLY p,double x,int N);
+void getMatrix(double matrix[M][M],int N);
+void matrixInverse(double matrix[M][M],int N);
+
+
 
 void bisection(POLY p,int N);
 void regulaFalsi(POLY p, int N);
@@ -27,7 +32,7 @@ int main(){
 	int i,N,flag,choice;
 	flag =1;
 	while(flag==1){
-		printf("\n0)QUIT\n1)Bisection Method\n2)Regula Falsi Method\n3)Newton Rapshon Method\n4)\n5)\n");
+		printf("\n0)QUIT\n1)Bisection Method\n2)Regula Falsi Method\n3)Newton Rapshon Method\n4)Inverse Matrix\n5)\n");
 		printf("6)\n7)\n8)\n9)\n10)\n");
 		printf("Seciminizi giriniz: ");
 		scanf("%d",&choice);
@@ -64,12 +69,18 @@ int main(){
 				break;
 			
 			case 4:
-				printf("\n|~~ Turev Method ~~|\n");
-				getFunction(&p);
-				N= p.n;
-				double cevap;
-				cevap= calculateDerivative(p,2,N);
-				printf("cevap: %lf\n\n",cevap);
+				printf("\n|~~ Inverse Matrix ~~|\n");
+				double matrix[M][M];
+				int N;
+				
+				printf("Enter a matrix size: ");
+				scanf("%d",&N);
+				
+				getMatrix(matrix,N);
+				matrixInverse(matrix,N);
+				
+				printf("Ana Menu (1)\nProgrami Kapat (0)\nSecim: ");
+				scanf("%d",flag);
 				break;
 			
 			case 5:
@@ -153,6 +164,65 @@ double calculateDerivative(POLY p,double x,int N){
 	}
 	return result; 
 }
+
+void getMatrix(double matrix[M][M], int N){
+	int i,j;
+	    
+    for(i=0;i<N;i++){
+    	for(j=0;j<N;j++){
+    		printf("A[%d][%d]: ",i,j);
+			scanf("%lf",&matrix[i][j]);
+		}
+	}	
+}
+
+void matrixInverse(double matrix[M][M],int N){
+    double temp,identity[M][M];
+	int i,j,k;
+	
+    for (i=0;i<N;i++){
+        for (j=0;j<N;j++){
+            if(i==j)
+				identity[i][j] = 1.0;
+			else
+				identity[i][j] = 0.0;
+        }
+    }
+    
+    // Calculate inverse matrix with Gauss-Jordan method
+    for (i=0;i<N; i++){
+		temp = matrix[i][i];
+		
+        for (j=0;j<N;j++){
+            matrix[i][j] /= temp;
+            identity[i][j] /= temp;
+        }
+        
+        for (j=0;j<N;j++){
+            if (j != i){
+                temp = matrix[j][i];
+                
+                for (k=0;k<N;k++){
+                    matrix[j][k] -= matrix[i][k] * temp;
+                    identity[j][k] -= identity[i][k] * temp;
+                }
+            }
+        }
+    }
+    printf("Inverse Matrix:\n");
+    for (i=0;i<N;i++){
+    	printf("|");
+        for (j=0;j<N;j++){
+        	if(identity[i][j] >0)
+				printf(" %.3lf  |",identity[i][j]);
+			else
+				printf(" %.3lf |",identity[i][j]);
+		}
+		printf("\n");
+	}
+	printf("\n");	
+}
+
 
 //Numeric Analysis Methods 
 void bisection(POLY p,int N){
@@ -274,4 +344,5 @@ void newtonRaphson(POLY p,int N){
 	printf("Result: %lf\n\n",xnew);
 }
 
+void fc();
 
