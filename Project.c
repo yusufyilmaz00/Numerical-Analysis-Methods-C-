@@ -19,9 +19,8 @@ void regulaFalsi(POLY p, int N);
 int main(){
 	POLY p;
 	int i,N,flag,choice;
-	choice=-1;
 	flag =1;
-	while(choice !=0 && flag==1){
+	while(flag==1){
 		printf("\n0)QUIT\n1)Bisection Yontemi\n2)Regula Falsi Yontemi\n3)\n4)\n5)\n");
 		printf("6)\n7)\n8)\n9)\n10)\n");
 		printf("Seciminizi giriniz: ");
@@ -92,13 +91,13 @@ int main(){
 
 void getFunction(POLY* p){
 	int i,N;
-	printf("Denklemin terim sayýsýný giriniz: ");
+	printf("Please enter how many x do you want in your polynomial (For example ax2 + bx + c has 3 x values): ");
 	scanf("%d",&N);
 	p->n = N;
 	for(i=0;i<N;i++){
-		printf("Katsayi giriniz: ");
+		printf("Enter x's coefficient: ");
 		scanf("%lf",&p->t[i].coef);
-		printf("Derece giriniz: ");
+		printf("Enter x's power: ");
 		scanf("%d",&p->t[i].exponent);
 	}
 	printf("\n");
@@ -118,60 +117,76 @@ double calculateFunction(POLY p,double x,int N){
 	}
 	return result; 
 }
+
 void bisection(POLY p,int N){
-	double  l,r,m,f_l,f_r,f_m;
-	int i;
+	double  l,r,m,f_l,f_r,f_m,tolerance;
+	int i,iterMax;
+	
+	printf("Enter a max iteration value: ");
+    scanf("%d",&iterMax);
+    
 	do{
-	printf("\nAralik baslangic degerini girin:");
+	printf("\nEnter an {a} value for [a,b]: ");
 	scanf("%lf",&l);
-	printf("Aralik bitis degerini girin:");
+	printf("Enter a {b} value for [a,b]: ");
 	scanf("%lf",&r);
 	}while(calculateFunction(p,l,N) * calculateFunction(p,r,N) > 0);
 	
+	printf("Enter a tolerance value: ");
+    scanf("%lf",&tolerance);
 	printf("\n");
+	
 	i=1;
 	f_l =calculateFunction(p,l,N);
-	f_r =calculateFunction(p,r,N); 
-	while ( (r-l)/pow(2,i) > 0.00001 && (f_l * f_r) <= 0.00001 ){
+	f_r =calculateFunction(p,r,N);
+	
+	while ( (r-l)/pow(2,i) > tolerance && i <= iterMax &&(f_l * f_r) < 0 ){
 		m = (l+r)/2 ; 
-		f_l =calculateFunction(p,l,N);
-		f_r =calculateFunction(p,r,N); 
-		f_m =calculateFunction(p,m,N);
+		f_m =calculateFunction(p,m,N); 
 		
-		printf("Iteration #%d f(%lf): %lf}\n",i,m,f_m);
+		printf("Iteration #%d\n",i,m,f_m);
 		printf("L-> F(%lf): %lf\n",l,f_l);
 		printf("M-> F(%lf): %lf\n",m,f_m);
 		printf("R-> F(%lf): %lf\n\n",r,f_r);
-		
 		
 		if(f_l * f_m  < 0)
 			r = m;
 		else if(f_r * f_m < 0)
 			l = m;		
+			
+		f_l =calculateFunction(p,l,N);
+		f_r =calculateFunction(p,r,N); 
 		i +=1;
 	}
 	
-	printf("Denklem koku: %lf\n\n",m);
+	printf("Result : %lf\n\n",m);
 }
 
 void regulaFalsi(POLY p, int N){
-	double  a,b,c,c2,f_a,f_b,f_c;
-	int i;
+	double  a,b,c,c2,f_a,f_b,f_c,tolerance;
+	int i,iterMax;
+	
+	printf("Enter a max iteration value: ");
+    scanf("%d",&iterMax);
+    
 	do{
-	printf("\nAralik baslangic degerini girin:");
+	printf("\nEnter an {a} value for [a,b]: ");
 	scanf("%lf",&a);
-	printf("Aralik bitis degerini girin:");
+	printf("Enter a {b} value for [a,b]: ");
 	scanf("%lf",&b);
 	}while(calculateFunction(p,a,N) * calculateFunction(p,b,N) > 0);
 	
+	printf("Enter a tolerance value: ");
+    scanf("%lf",&tolerance);
 	printf("\n");
+	
 	i=1;
 	f_a =calculateFunction(p,a,N);
 	f_b =calculateFunction(p,b,N);
-	c2=0;
-	c= ( (b* f_a) - (a * f_b) ) / (f_a - f_b); 
-	while ( fabs(c2 - c) > 0.01 && (f_a * f_b) < 0 ){
-		
+	
+	
+	while ( fabs(b-a) / pow(2,i) > tolerance && i <= iterMax && (f_a * f_b) < 0 ){	
+		c= ( (b* f_a) - (a * f_b) ) / (f_a - f_b); 	
 		f_c = calculateFunction(p, c, N);
 		
 		printf("Iteration #%d\n",i);
@@ -179,19 +194,18 @@ void regulaFalsi(POLY p, int N){
 		printf("C-> F(%lf): %lf\n",c,f_c);
 		printf("B-> F(%lf): %lf\n\n",b,f_b);
 		
-		
 		if(f_b * f_c  < 0)
 			a = c;
 		else if(f_a * f_c < 0)
 			b = c;
 			
-		f_a =calculateFunction(p,a,N);
-		f_b =calculateFunction(p,b,N); 
-		c2 =c;
 		c= ( (b* f_a) - (a * f_b) ) / (f_a - f_b); 	
+		f_a =calculateFunction(p,a,N);
+		f_b =calculateFunction(p,b,N);
+		f_c = calculateFunction(p, c, N); 
 		i +=1;
 	}
-	printf("Denklem koku: %lf\n",c);
+	printf("Denklem koku: %lf\n\n",c);
 }
 
 	
