@@ -2,7 +2,7 @@
 #include <math.h>
 
 #define MAX 25
-#define M 25
+
 
 typedef struct term{
 	double coef;
@@ -17,14 +17,17 @@ typedef struct poly{
 void getFunction(POLY* p);
 double calculateFunction(POLY p,double x,int N);
 double calculateDerivative(POLY p,double x,int N);
-void getMatrix(double matrix[M][M],int N);
-void matrixInverse(double matrix[M][M],int N);
-
+void getMatrix(double matrix[MAX][MAX],int N,int M);
+void showMatrix(double matrix[MAX][MAX], int N,int M);
 
 
 void bisection(POLY p,int N);
 void regulaFalsi(POLY p, int N);
 void newtonRaphson(POLY p,int N);
+void matrixInverse(double matrix[MAX][MAX],int N);
+void gaussElimination();
+void numericalDerivative(POLY p,int N);
+
 
 
 int main(){
@@ -32,13 +35,16 @@ int main(){
 	int i,N,flag,choice;
 	flag =1;
 	while(flag==1){
-		printf("\n0)QUIT\n1)Bisection Method\n2)Regula Falsi Method\n3)Newton Rapshon Method\n4)Inverse Matrix\n5)\n");
-		printf("6)\n7)\n8)\n9)\n10)\n");
+		printf("\n0)QUIT\n1)Bisection Method\n2)Regula Falsi Method\n3)Newton Rapshon Method\n4)Inverse Matrix\n5)Gauss Elimination Method\n");
+		printf("6)\n7)Numerical Derivative\n8)\n9)\n10)\n");
 		printf("Seciminizi giriniz: ");
 		scanf("%d",&choice);
 		
 		switch(choice){
-			
+			case 0:
+				flag=0;
+				break;
+				
 			case 1:
 				printf("\n|~~ Bisection Method ~~|\n");
 				getFunction(&p);
@@ -70,13 +76,13 @@ int main(){
 			
 			case 4:
 				printf("\n|~~ Inverse Matrix ~~|\n");
-				double matrix[M][M];
+				double matrix[MAX][MAX];
 				int N;
 				
 				printf("Enter a matrix size: ");
 				scanf("%d",&N);
 				
-				getMatrix(matrix,N);
+				getMatrix(matrix,N,N);
 				matrixInverse(matrix,N);
 				
 				printf("Ana Menu (1)\nProgrami Kapat (0)\nSecim: ");
@@ -84,7 +90,9 @@ int main(){
 				break;
 			
 			case 5:
+				printf("\n|~~ Gauss Elimination Method ~~|\n");
 				
+				gaussElimination();
 				break;
 			
 			case 6:
@@ -92,7 +100,10 @@ int main(){
 				break;
 			
 			case 7:
-				
+				printf("\n|~~ Numerical Derivative ~~|\n");
+				getFunction(&p);
+				N= p.n;
+				numericalDerivative(p,N);
 				break;
 			
 			case 8:
@@ -165,62 +176,35 @@ double calculateDerivative(POLY p,double x,int N){
 	return result; 
 }
 
-void getMatrix(double matrix[M][M], int N){
+void getMatrix(double matrix[MAX][MAX], int N,int M){
 	int i,j;
 	    
     for(i=0;i<N;i++){
-    	for(j=0;j<N;j++){
+    	for(j=0;j<M;j++){
     		printf("A[%d][%d]: ",i,j);
 			scanf("%lf",&matrix[i][j]);
 		}
 	}	
 }
 
-void matrixInverse(double matrix[M][M],int N){
-    double temp,identity[M][M];
-	int i,j,k;
+void showMatrix(double matrix[MAX][MAX], int N,int M){
+	int i,j;
 	
-    for (i=0;i<N;i++){
-        for (j=0;j<N;j++){
-            if(i==j)
-				identity[i][j] = 1.0;
-			else
-				identity[i][j] = 0.0;
-        }
-    }
-    
-    // Calculate inverse matrix with Gauss-Jordan method
-    for (i=0;i<N; i++){
-		temp = matrix[i][i];
-		
-        for (j=0;j<N;j++){
-            matrix[i][j] /= temp;
-            identity[i][j] /= temp;
-        }
-        
-        for (j=0;j<N;j++){
-            if (j != i){
-                temp = matrix[j][i];
-                
-                for (k=0;k<N;k++){
-                    matrix[j][k] -= matrix[i][k] * temp;
-                    identity[j][k] -= identity[i][k] * temp;
-                }
-            }
-        }
-    }
-    printf("Inverse Matrix:\n");
-    for (i=0;i<N;i++){
+	for (i=0;i<N;i++){
     	printf("|");
-        for (j=0;j<N;j++){
-        	if(identity[i][j] >0)
-				printf(" %.3lf  |",identity[i][j]);
+        for (j=0;j<M;j++){
+        	if(matrix[i][j] >=10)
+        		printf(" %.2lf  |",matrix[i][j]);
+        	else if(matrix[i][j] >=0)
+				printf(" %.2lf   |",matrix[i][j]);
+			else if(matrix[i][j] <0 && matrix[i][j] > -10)
+				printf(" %.2lf  |",matrix[i][j]);
 			else
-				printf(" %.3lf |",identity[i][j]);
+				printf(" %.2lf |",matrix[i][j]);
 		}
 		printf("\n");
 	}
-	printf("\n");	
+	printf("\n");
 }
 
 
@@ -344,5 +328,153 @@ void newtonRaphson(POLY p,int N){
 	printf("Result: %lf\n\n",xnew);
 }
 
-void fc();
+void matrixInverse(double matrix[MAX][MAX],int N){
+    double temp,identity[MAX][MAX];
+	int i,j,k;
+	
+    for (i=0;i<N;i++){
+        for (j=0;j<N;j++){
+            if(i==j)
+				identity[i][j] = 1.0;
+			else
+				identity[i][j] = 0.0;
+        }
+    }
+    
+    // Calculate inverse matrix with Gauss-Jordan method
+    for (i=0;i<N; i++){
+		temp = matrix[i][i];
+		
+        for (j=0;j<N;j++){
+            matrix[i][j] /= temp;
+            identity[i][j] /= temp;
+        }
+        
+        for (j=0;j<N;j++){
+            if (j != i){
+                temp = matrix[j][i];
+                
+                for (k=0;k<N;k++){
+                    matrix[j][k] -= matrix[i][k] * temp;
+                    identity[j][k] -= identity[i][k] * temp;
+                }
+            }
+        }
+    }
+    printf("Inverse Matrix:\n");
+    showMatrix(identity,N,N);	
+}
 
+void gaussElimination(){
+	int i,j,k,N;
+	double matrix[MAX][MAX],solution[MAX];
+	double ratio,sum;
+	
+	printf("Enter a equations count: ");
+	scanf("%d",&N);
+	
+	for(i=0;i<N;i++){
+		printf("Enter the coefficients\n");
+		for(j=0;j<N;j++){
+			printf("x%d: ",j+1);
+			scanf("%lf",&matrix[i][j]);
+		}
+		printf("result = ");
+		scanf("%lf",&matrix[i][j]);
+	}
+	
+	printf("\nOur Matrix:\n");
+	showMatrix(matrix,N,N+1);
+	
+	//transform into triangular matrix
+	for (i=0;i<N-1;i++){
+        if(matrix[i][i] == 0.0){
+            printf("The pivot element is zero. Exiting....\n");
+            return;
+        }
+		
+		for(j=i+1;j<N;j++){
+			ratio = matrix[j][i] / matrix[i][i];
+			for(k=0;k<=N;k++){
+				matrix[j][k] -= ratio * matrix[i][k];	
+			}
+		}
+	}
+	
+	//getting solutions
+	for(i=N-1;i>=0;i--){
+        sum = 0.0;    
+        for(j=i+1;j<N;j++){
+            sum += matrix[i][j] * solution[j];
+        }
+        solution[i] = (matrix[i][N] - sum) / matrix[i][i];
+    }
+    printf("Matrix after Gaussian elimination:\n");
+	showMatrix(matrix,N,N+1);
+	
+	printf("Solutions:\n");
+    for (i=0;i<N;i++){
+        printf("x%d = %.2lf\n",i+1,solution[i]);
+    }
+}
+
+void numericalDerivative(POLY p,int N){
+	int subType;
+	double h,x,f_dx,f_x,f_xi;
+	
+	printf("Choose sub-method:\n1)Forward differencing\n2)Backward differencing\n3)Centered differencing\n4)Show result with every sub-method\n");
+	scanf("%d",&subType);
+	printf("Enter a delta x value: ");
+	scanf("%lf",&h);
+	printf("Enter a X value that you want to calculate F'(x): ");
+	scanf("%lf",&x);
+	
+	switch(subType){
+		case 1:
+				printf("\n|~~ Forward differencing ~~|\n\n");
+				f_x = calculateFunction(p,x,N);
+				f_xi = calculateFunction(p,x+h,N);
+				f_dx = (f_xi - f_x) / h;
+				printf("f(x): %.3lf\n",f_x);
+				printf("f(x+i): %.3lf\n",f_xi);
+				printf("f'(x): %.3lf\n\n",f_dx); 
+			break;
+		
+		case 2:
+				printf("\n|~~ Backward differencing ~~|\n");
+				f_x = calculateFunction(p,x,N);
+				f_xi = calculateFunction(p,x-h,N);
+				f_dx = (f_x - f_xi) / h;
+				printf("f(x): %.3lf\n",f_x);
+				printf("f(x-i): %.3lf\n",f_xi);
+				printf("f'(x): %.3lf\n\n",f_dx); 
+			break;
+			
+		case 3:
+				printf("\n|~~ Centered differencing ~~|\n");
+				f_x = calculateFunction(p,x-h,N);
+				f_xi = calculateFunction(p,x+h,N);
+				f_dx = (f_xi - f_x) / (2*h);
+				printf("f(x-i): %.3lf\n",f_x);
+				printf("f(x+i): %.3lf\n",f_xi);
+				printf("f'(x): %.3lf\n\n",f_dx); 
+			break;
+		
+		case 4:
+			printf("\n|~~ All Sub-methods ~~|\n");
+				f_x = calculateFunction(p,x,N);
+				
+				printf("f(x): %.3lf\n",f_x);
+				f_dx = ( calculateFunction(p,x+h,N) - f_x) / h;
+				printf("Forward  -> f'(x): %.3lf\n", f_dx );
+				f_dx = ( f_x - calculateFunction(p,x-h,N) ) / h;
+				printf("Backward -> f'(x): %.3lf\n", f_dx);
+				f_dx = ( calculateFunction(p,x+h,N) - calculateFunction(p,x-h,N) ) / (2*h);
+				printf("Centered -> f'(x): %.3lf\n\n",f_dx);
+				break;
+		default:
+			printf("Gecerli Deger Giriniz !\n");
+			break;
+	}
+	
+}
