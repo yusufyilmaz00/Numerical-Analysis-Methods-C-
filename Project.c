@@ -27,7 +27,7 @@ void newtonRaphson(POLY p,int N);
 void matrixInverse(double matrix[MAX][MAX],int N);
 void gaussElimination();
 void numericalDerivative(POLY p,int N);
-
+void trapezoidal(POLY p,int N);
 
 
 int main(){
@@ -36,7 +36,7 @@ int main(){
 	flag =1;
 	while(flag==1){
 		printf("\n0)QUIT\n1)Bisection Method\n2)Regula Falsi Method\n3)Newton Rapshon Method\n4)Inverse Matrix\n5)Gauss Elimination Method\n");
-		printf("6)\n7)Numerical Derivative\n8)\n9)\n10)\n");
+		printf("6)\n7)Numerical Derivative\n8)\n9)Trapezoidal Rule\n10)\n");
 		printf("Seciminizi giriniz: ");
 		scanf("%d",&choice);
 		
@@ -111,9 +111,12 @@ int main(){
 				break;
 			
 			case 9:
-				
+				printf("\n|~~ Trapezoidal Rule ~~|\n");
+				getFunction(&p);
+				N= p.n;
+				trapezoidal(p,N);
 				break;
-			
+				
 			case 10:
 				
 				break;
@@ -477,4 +480,25 @@ void numericalDerivative(POLY p,int N){
 			break;
 	}
 	
+}
+
+void trapezoidal(POLY p,int N){
+	double a,b,h,f_x,result;
+	int i,n;
+	result =0.0;
+	printf("Enter the starting point [a,b]: ");
+	scanf("%lf",&a);
+	printf("Enter the ending point [a,b]: ");
+	scanf("%lf",&b);
+	
+	printf("Provide n value: ");
+	scanf("%d",&n);
+	h = (b-a) / n;
+	
+	for(i=1;i<n;i++){
+		result += calculateFunction(p, a+(i*h) ,N);
+	}
+	result *= h;
+	result += ( calculateFunction(p,a,N) + calculateFunction(p,b,N) ) * h/2 ;
+	printf("\nYour Result: %.4lf\n\n",result);	
 }
