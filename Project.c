@@ -2,7 +2,7 @@
 #include <math.h>
 
 #define MAX 25
-
+#define MAXSIZE 100
 
 typedef struct term{
 	double coef;
@@ -26,9 +26,11 @@ void regulaFalsi(POLY p, int N);
 void newtonRaphson(POLY p,int N);
 void matrixInverse(double matrix[MAX][MAX],int N);
 void gaussElimination();
+void gausSeidel();
 void numericalDerivative(POLY p,int N);
+void simpson(POLY p,int N);
 void trapezoidal(POLY p,int N);
-
+void gregoryNewton();
 
 int main(){
 	POLY p;
@@ -36,7 +38,7 @@ int main(){
 	flag =1;
 	while(flag==1){
 		printf("\n0)QUIT\n1)Bisection Method\n2)Regula Falsi Method\n3)Newton Rapshon Method\n4)Inverse Matrix\n5)Gauss Elimination Method\n");
-		printf("6)\n7)Numerical Derivative\n8)\n9)Trapezoidal Rule\n10)\n");
+		printf("6)Gauss - Seidel Method\n7)Numerical Derivative\n8)Simpson Rule\n9)Trapezoidal Rule\n10)Gregory - Newton Interpolation\n");
 		printf("Seciminizi giriniz: ");
 		scanf("%d",&choice);
 		
@@ -50,8 +52,6 @@ int main(){
 				getFunction(&p);
 				N= p.n;
 				bisection(p,N);
-				printf("Ana Menu (1)\nProgrami Kapat (0)\nSecim: ");
-				scanf("%d",flag);
 				break;
 			
 			case 2:
@@ -59,8 +59,6 @@ int main(){
 				getFunction(&p);
 				N= p.n;
 				regulaFalsi(p,N);
-				printf("Ana Menu (1)\nProgrami Kapat (0)\nSecim: ");
-				scanf("%d",flag);
 				break;
 			
 			case 3:
@@ -68,10 +66,6 @@ int main(){
 				getFunction(&p);
 				N= p.n;
 				newtonRaphson(p,N);
-				
-				printf("Ana Menu (1)\nProgrami Kapat (0)\nSecim: ");
-				scanf("%d",flag);
-				
 				break;
 			
 			case 4:
@@ -84,19 +78,16 @@ int main(){
 				
 				getMatrix(matrix,N,N);
 				matrixInverse(matrix,N);
-				
-				printf("Ana Menu (1)\nProgrami Kapat (0)\nSecim: ");
-				scanf("%d",flag);
 				break;
 			
 			case 5:
 				printf("\n|~~ Gauss Elimination Method ~~|\n");
-				
 				gaussElimination();
 				break;
 			
 			case 6:
-				
+				printf("\n|~~ Gauss - Seidel Method ~~|\n");
+				gausSeidel();
 				break;
 			
 			case 7:
@@ -107,7 +98,10 @@ int main(){
 				break;
 			
 			case 8:
-				
+				printf("\n|~~ Simpson Rule ~~|\n");
+				getFunction(&p);
+				N= p.n;
+				simpson(p,N);
 				break;
 			
 			case 9:
@@ -118,7 +112,8 @@ int main(){
 				break;
 				
 			case 10:
-				
+				printf("\n|~~ Gregory - Newton Interpolation ~~|\n");
+				gregoryNewton();
 				break;
 			
 			default:
@@ -210,14 +205,38 @@ void showMatrix(double matrix[MAX][MAX], int N,int M){
 	printf("\n");
 }
 
-
+int factorial(int x){
+	int i,result;
+	result = 1;
+	for(i=x;i>1;i--){
+		result *= i;
+	}
+	return result;
+}
+double multiply(double x,int i){
+	double result;
+	int j;
+	result =1;
+	for(j=0;j<i;j++){
+		result *=x;
+		x -=1;
+	}
+	return result;
+}
+double forwardDiff(double data[MAXSIZE],int n,int max){
+	int j;
+	for(j=max;j<n;j++){
+		data[j]= data[j] - data[j-1];
+	}
+	
+	return data[max];
+}
 //Numeric Analysis Methods 
 void bisection(POLY p,int N){
 	double  l,r,m,f_l,f_r,f_m,tolerance;
 	int i,iterMax;
 	
-	printf("Enter a max iteration value: ");
-    scanf("%d",&iterMax);
+	
     
 	do{
 	printf("\nEnter an {a} value for [a,b]: ");
@@ -225,6 +244,9 @@ void bisection(POLY p,int N){
 	printf("Enter a {b} value for [a,b]: ");
 	scanf("%lf",&r);
 	}while(calculateFunction(p,l,N) * calculateFunction(p,r,N) > 0);
+	
+	printf("Enter a max iteration value: ");
+    scanf("%d",&iterMax);
 	
 	printf("Enter a tolerance value: ");
     scanf("%lf",&tolerance);
@@ -421,6 +443,111 @@ void gaussElimination(){
     }
 }
 
+void gausSeidel(){
+	int i,j,k,flag,idx,iterMax,N;
+	double matrix[MAX][MAX],B[MAX],X[MAX],oldX[MAX];
+	double max,temp,tolerance,sum,error,diff;
+	
+	printf("Enter a equations count: ");
+	scanf("%d",&N);
+	
+	for(i=0;i<N;i++){
+		printf("Enter the coefficients\n");
+		for(j=0;j<N;j++){
+			printf("x%d: ",j+1);
+			scanf("%lf",&matrix[i][j]);
+		}
+		printf("result = ");
+		scanf("%lf",&B[i]);
+	}
+	printf("Enter the tolerance value : ");
+	scanf("%lf",&tolerance);	
+	printf("Enter the max iteration value : ");
+	scanf("%d",&iterMax);
+	for(i=0;i<N;i++){
+		printf("Enter the starting value for x%d: ",i+1);
+		scanf("%lf",&X[i]);		
+	}
+	
+	printf("\nEntered Matrix:\n");
+	showMatrix(matrix,N,N);
+
+	for(i=0;i<N-1;i++){
+		// searching max value for pivot
+		max= fabs(matrix[i][i]);
+		idx= i; // idx = current row
+		for(j=i;j<N;j++){
+			if( fabs(matrix[j][i]) > max ){ 
+				max = matrix[j][i];
+				idx = j;
+			}
+		}
+		// if max value row different from current row if condition works
+		if(idx != i){
+			for(k=0; k<N ;k++){
+				temp= matrix[idx][k];
+				matrix[idx][k]= matrix[i][k];
+				matrix[i][k] = temp;
+			}
+			temp=B[idx];
+			B[idx] = B[i];
+			B[i] = temp;
+		}
+	}
+	printf("Your diagonal matrix:\n");
+	for(i=0;i<N;i++){
+		for(j=0;j<N;j++){
+			printf("%.2lf | ",matrix[i][j]);
+		}
+		printf(" = ");
+		printf("%.2lf \n",B[i]);
+	}
+	printf("\n");
+	
+	k=0;
+	flag=1;
+	while( k < iterMax && flag==1 ){
+		printf("Iteration #%d\n",k+1);
+		for(i=0;i<N;i++){
+			printf("x%d: %.3lf| ",i+1,X[i]);
+		}
+		printf("\n");
+		
+		for(i=0;i<N;i++){
+            sum = 0.0;
+            for(j=0; j<N;j++){
+                if(j != i){
+                    sum += matrix[i][j] * X[j];
+                }
+            }
+            X[i] = (B[i] - sum) / matrix[i][i];
+        }
+		
+        // convergence control
+        error = 0.0;
+        for(i=0;i<N;i++){
+        	diff = fabs(X[i] - oldX[i]);
+            if ( diff >= error) {
+                error = diff;
+            }
+            oldX[i] = X[i];
+        }
+		
+        if(error <= tolerance){
+            printf("\nconvergence has been achieved...\n");
+			flag=0;
+        }	
+    	k += 1;
+	}
+	
+	printf("\nResults:\n");
+	for(i=0;i<N;i++){
+		printf("x%d: %.3lf| ",i+1,X[i]);
+	}
+	printf("\n");
+}
+
+
 void numericalDerivative(POLY p,int N){
 	int subType;
 	double h,x,f_dx,f_x,f_xi;
@@ -476,10 +603,65 @@ void numericalDerivative(POLY p,int N){
 				printf("Centered -> f'(x): %.3lf\n\n",f_dx);
 				break;
 		default:
-			printf("Gecerli Deger Giriniz !\n");
+			printf("Please enter valid value !\n");
 			break;
 	}
 	
+}
+
+void simpson(POLY p,int N){
+	double a,b,h,result,initX,endX;
+	int i,n,subType;
+	printf("Choose the formula you want: ");
+	printf("\n1- Simpson's 1/3 rule\n2- Simpson's 3/8 rule\nChoice: ");
+	scanf("%d",&subType);
+	printf("\nEnter the starting point [a,b]: ");
+	scanf("%lf",&a);
+	printf("Enter the ending point [a,b]: ");
+	scanf("%lf",&b);
+	
+	
+	
+	switch(subType){
+		case 1:
+			do{
+				printf("( n value must be even number )\n");
+				printf("Enter the n value: ");
+				scanf("%d",&n);	
+			}while(n%2 !=0);
+			
+			h = (b - a) / n;
+			for(i=1;i<n;i++){
+				if( i%2 == 0){
+					result += 2 * calculateFunction(p, a+(i*h) ,N);	
+				}
+				else{
+					result += 4 * calculateFunction(p, a+(i*h) ,N);
+				}
+			}
+			result += calculateFunction(p, a ,N) + calculateFunction(p, b ,N);
+			result *= h/3;
+			printf("\nYour Result: %.4lf\n",result);
+			break;
+			
+		case 2:
+			printf("Enter the n value: ");
+			scanf("%d",&n);
+			initX = a;
+			for(i=1; i<=n ;i++){
+				endX = initX + ( (b-a) / n );
+				h = (endX - initX) / 3;
+				//simpson 3/8's rule
+				result += (endX - initX ) * ( calculateFunction(p, initX ,N) + 3*calculateFunction(p, initX + h ,N) + 3*calculateFunction(p, initX+ 2*h ,N) + calculateFunction(p, endX ,N) ) /8;
+				initX +=  (b-a) / n;   
+			}
+			printf("\nYour Result: %.4lf\n",result);
+			break;
+			
+		default:
+			printf("Please enter valid value !\n");
+			break;
+	}
 }
 
 void trapezoidal(POLY p,int N){
@@ -491,7 +673,7 @@ void trapezoidal(POLY p,int N){
 	printf("Enter the ending point [a,b]: ");
 	scanf("%lf",&b);
 	
-	printf("Provide n value: ");
+	printf("Enter n value: ");
 	scanf("%d",&n);
 	h = (b-a) / n;
 	
@@ -502,3 +684,49 @@ void trapezoidal(POLY p,int N){
 	result += ( calculateFunction(p,a,N) + calculateFunction(p,b,N) ) * h/2 ;
 	printf("\nYour Result: %.4lf\n\n",result);	
 }
+
+void gregoryNewton(){
+	double a,x,h,diff,temp,result,data[MAXSIZE],tempData[MAXSIZE];
+	int i,j,flag,n,max;
+	printf("\nEnter the starting x value (x0): ");
+	scanf("%lf",&a);
+	printf("Enter gap (h): ");
+	scanf("%lf",&h);
+	printf("Enter the count of datas you have (n): ");
+	scanf("%d",&n);
+	printf("Enter values of these datas: \n");
+	
+	temp = a;
+	for(i = 0; i < n; i++){
+		printf("f(%lf): ",temp);
+		scanf("%lf",&data[i]);
+		temp += h;
+	}
+	printf("Enter the x value that you want to calculate: ");
+	scanf("%lf",&x);
+	
+	for(i=0;i<n;i++)
+		tempData[i]= data[i]; 
+	
+	i=1;
+	flag=1;
+	while(i<n && flag ==1){
+		for(j=i;j<n;j++){
+			if( tempData[j] - tempData[j-1] == 0){
+				flag=0;	
+			}
+			tempData[j]= tempData[j] - tempData[j-1];
+			max +=1;
+		}
+		i +=1;
+	}
+	
+	// 'max' define max power of x
+	result = data[0];
+	for(i=0;i<max;i++){
+		result += multiply(x,i+1) * forwardDiff(data,n,i+1) / factorial(i+1);	
+	}
+	printf("Your Result: %lf",result);
+}
+
+
