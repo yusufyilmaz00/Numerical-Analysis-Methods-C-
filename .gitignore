@@ -3,6 +3,6 @@
 *.pdf
 *.jpg
 *.jpeg
-hata.c
 
-
+# Except
+!report.pdf
